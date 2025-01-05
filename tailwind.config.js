@@ -2,8 +2,12 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        mainBGColor: "#0d1117",
+        columnBGColor: "#161c22",
+      },
+    },
   },
   plugins: [],
 };
-
