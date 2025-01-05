@@ -11,12 +11,14 @@ import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import React from "react";
 import { createPortal } from "react-dom";
 import PlusIcon from "../icons/plus-icon";
-import { Column, ID } from "../types";
+import { Column, ID, Task } from "../types";
 import ColumnContainer from "./column-container";
 
 const KanbanBoard = () => {
   const [columns, setColumns] = React.useState<Column[]>([]);
   const [activeColumn, setActiveColumn] = React.useState<Column | null>(null);
+
+  const [tasks, setTasks] = React.useState<Task[]>([]);
 
   const columnsId = React.useMemo(
     () => columns.map((column) => column.id),
@@ -44,6 +46,20 @@ const KanbanBoard = () => {
         column.id === id ? { ...column, title } : column
       )
     );
+  };
+
+  const createTask = (columnId: ID) => {
+    const newTask: Task = {
+      id: generateId(),
+      content: `Task ${tasks.length + 1}`,
+      columnId,
+    };
+
+    setTasks([...tasks, newTask]);
+  };
+
+  const deleteTask = (id: ID) => {
+    setTasks(tasks.filter((task) => task.id !== id));
   };
 
   const onDragStart = (event: DragStartEvent) => {
@@ -99,6 +115,9 @@ const KanbanBoard = () => {
                   column={column}
                   deleteColumn={deleteColumn}
                   updateColumnTitle={updateColumnTitle}
+                  createTask={createTask}
+                  tasks={tasks.filter((task) => task.columnId === column.id)}
+                  deleteTask={deleteTask}
                 />
               ))}
             </SortableContext>
@@ -118,6 +137,11 @@ const KanbanBoard = () => {
                 column={activeColumn}
                 deleteColumn={deleteColumn}
                 updateColumnTitle={updateColumnTitle}
+                createTask={createTask}
+                tasks={tasks.filter(
+                  (task) => task.columnId === activeColumn.id
+                )}
+                deleteTask={deleteTask}
               />
             )}
           </DragOverlay>,
