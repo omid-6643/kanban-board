@@ -38,6 +38,14 @@ const KanbanBoard = () => {
     setColumns(columns.filter((column) => column.id !== id));
   };
 
+  const updateColumnTitle = (id: ID, title: string) => {
+    setColumns(
+      columns.map((column) =>
+        column.id === id ? { ...column, title } : column
+      )
+    );
+  };
+
   const onDragStart = (event: DragStartEvent) => {
     if (event.active.data.current?.type === "Column") {
       setActiveColumn(event.active.data.current.column);
@@ -77,7 +85,11 @@ const KanbanBoard = () => {
 
   return (
     <div className="m-auto flex min-h-screen w-full items-center overflow-x-auto overflow-y-hidden px-10">
-      <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+      <DndContext
+        sensors={sensors}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+      >
         <div className="m-auto flex gap-2">
           <div className="flex gap-4">
             <SortableContext items={columnsId}>
@@ -86,6 +98,7 @@ const KanbanBoard = () => {
                   key={column.id}
                   column={column}
                   deleteColumn={deleteColumn}
+                  updateColumnTitle={updateColumnTitle}
                 />
               ))}
             </SortableContext>
@@ -104,6 +117,7 @@ const KanbanBoard = () => {
               <ColumnContainer
                 column={activeColumn}
                 deleteColumn={deleteColumn}
+                updateColumnTitle={updateColumnTitle}
               />
             )}
           </DragOverlay>,
