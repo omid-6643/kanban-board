@@ -1,4 +1,4 @@
-import { useSortable } from "@dnd-kit/sortable";
+import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import React from "react";
 import PlusIcon from "../icons/plus-icon";
@@ -27,6 +27,7 @@ const ColumnContainer = (props: Props) => {
     updateTask,
   } = props;
   const [isEditTitle, setIsEditTitle] = React.useState(false);
+  const tasksIds = React.useMemo(() => tasks.map((task) => task.id), [tasks]);
 
   const {
     setNodeRef,
@@ -104,16 +105,18 @@ const ColumnContainer = (props: Props) => {
 
       {/* tasks */}
       <div className="flex flex-grow flex-col gap-4 p-2 overflow-x-hidden overflow-y-auto">
-        {tasks.map((task) => {
-          return (
-            <TaskCard
-              key={task.id}
-              task={task}
-              deleteTask={deleteTask}
-              updateTask={updateTask}
-            />
-          );
-        })}
+        <SortableContext items={tasksIds}>
+          {tasks.map((task) => {
+            return (
+              <TaskCard
+                key={task.id}
+                task={task}
+                deleteTask={deleteTask}
+                updateTask={updateTask}
+              />
+            );
+          })}
+        </SortableContext>
       </div>
       {/* footer */}
 

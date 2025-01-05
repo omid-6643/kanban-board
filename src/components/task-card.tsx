@@ -1,3 +1,5 @@
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import React from "react";
 import TrashIcon from "../icons/trash-icon";
 import { ID, Task } from "../types";
@@ -10,16 +12,53 @@ interface Props {
 
 const TaskCard = ({ task, deleteTask, updateTask }: Props) => {
   const [mouseIsOver, setMouseIsOver] = React.useState(false);
-  const [editTask, setEditTask] = React.useState(false);
+  const [isEditTask, setIsEditTask] = React.useState(false);
+
+  const {
+    setNodeRef,
+    attributes,
+    listeners,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id,
+    data: {
+      type: "Task",
+      task,
+    },
+    disabled: isEditTask,
+  });
+
+  const style = {
+    transition,
+    transform: CSS.Transform.toString(transform),
+  };
 
   const toggleEditTask = () => {
-    setEditTask(!editTask);
+    setIsEditTask(!isEditTask);
     setMouseIsOver(false);
   };
 
-  if (editTask) {
+  if (isDragging) {
     return (
-      <div className="bg-mainBGColor cursor-grab relative p-2.5 h-[100px] min-h-[100px] items-center flex text-left rounded-xl hover:ring-2 hover:ring-inset hover:ring-rose-500">
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="opacity-30 bg-mainBGColor p-2.5 h-[100px] min-h-[100px] items-center flex text-left rounded-xl border-2 border-rose-500 cursor-grab relative "
+      />
+    );
+  }
+
+  if (isEditTask) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        className="bg-mainBGColor cursor-grab relative p-2.5 h-[100px] min-h-[100px] items-center flex text-left rounded-xl hover:ring-2 hover:ring-inset hover:ring-rose-500"
+      >
         <textarea
           className="h-[90%] w-full resize-none border-none rounded bg-transparent text-white focus:outline-none"
           value={task.content}
@@ -45,6 +84,10 @@ const TaskCard = ({ task, deleteTask, updateTask }: Props) => {
       onMouseEnter={() => setMouseIsOver(true)}
       onMouseLeave={() => setMouseIsOver(false)}
       onClick={toggleEditTask}
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
     >
       <p className="my-auto h-[90%] w-full overflow-y-auto overflow-x-hidden whitespace-pre-wrap">
         {task.content}

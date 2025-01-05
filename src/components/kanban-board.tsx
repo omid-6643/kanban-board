@@ -1,6 +1,7 @@
 import {
   DndContext,
   DragEndEvent,
+  DragOverEvent,
   DragOverlay,
   DragStartEvent,
   PointerSensor,
@@ -13,12 +14,14 @@ import { createPortal } from "react-dom";
 import PlusIcon from "../icons/plus-icon";
 import { Column, ID, Task } from "../types";
 import ColumnContainer from "./column-container";
+import TaskCard from "./task-card";
 
 const KanbanBoard = () => {
   const [columns, setColumns] = React.useState<Column[]>([]);
   const [activeColumn, setActiveColumn] = React.useState<Column | null>(null);
 
   const [tasks, setTasks] = React.useState<Task[]>([]);
+  const [activeTask, setActiveTask] = React.useState<Task | null>(null);
 
   const columnsId = React.useMemo(
     () => columns.map((column) => column.id),
@@ -38,6 +41,7 @@ const KanbanBoard = () => {
 
   const deleteColumn = (id: ID) => {
     setColumns(columns.filter((column) => column.id !== id));
+    setTasks(tasks.filter((task) => task.columnId !== id));
   };
 
   const updateColumnTitle = (id: ID, title: string) => {
@@ -73,9 +77,15 @@ const KanbanBoard = () => {
       setActiveColumn(event.active.data.current.column);
       return;
     }
+    if (event.active.data.current?.type === "Task") {
+      setActiveTask(event.active.data.current.task);
+      return;
+    }
   };
 
   const onDragEnd = (event: DragEndEvent) => {
+    setActiveColumn(null);
+    setActiveTask(null);
     const { active, over } = event;
 
     if (!over) return;
@@ -97,6 +107,47 @@ const KanbanBoard = () => {
     });
   };
 
+  const onDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    if (activeId === overId) return;
+
+    const isActiveATask = active.data.current?.type === "Task";
+    const isOverATask = over.data.current?.type === "Task";
+
+    if (!isActiveATask) return;
+
+    // drop task over another column
+    if (isActiveATask && isOverATask) {
+      setTasks((tasks) => {
+        const activeIndex = tasks.findIndex((task) => task.id === activeId);
+
+        const overIndex = tasks.findIndex((task) => task.id === overId);
+
+        tasks[activeIndex].columnId = tasks[overIndex].columnId;
+
+        return arrayMove(tasks, activeIndex, overIndex);
+      });
+    }
+
+    const isOverColumn = over.data.current?.type === "Column";
+
+    if (isActiveATask && isOverColumn) {
+      setTasks((tasks) => {
+        const activeIndex = tasks.findIndex((task) => task.id === activeId);
+
+        tasks[activeIndex].columnId = overId;
+
+        return arrayMove(tasks, activeIndex, activeIndex);
+      });
+    }
+  };
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -111,6 +162,7 @@ const KanbanBoard = () => {
         sensors={sensors}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
+        onDragOver={onDragOver}
       >
         <div className="m-auto flex gap-2">
           <div className="flex gap-4">
@@ -148,6 +200,13 @@ const KanbanBoard = () => {
                 tasks={tasks.filter(
                   (task) => task.columnId === activeColumn.id
                 )}
+                deleteTask={deleteTask}
+                updateTask={updateTask}
+              />
+            )}
+            {activeTask && (
+              <TaskCard
+                task={activeTask}
                 deleteTask={deleteTask}
                 updateTask={updateTask}
               />
