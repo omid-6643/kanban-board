@@ -13,6 +13,7 @@ interface Props {
   createTask: (columnId: ID) => void;
   tasks: Task[];
   deleteTask: (id: ID) => void;
+  updateTask: (id: ID, content: string) => void;
 }
 
 const ColumnContainer = (props: Props) => {
@@ -23,6 +24,7 @@ const ColumnContainer = (props: Props) => {
     createTask,
     tasks,
     deleteTask,
+    updateTask,
   } = props;
   const [isEditTitle, setIsEditTitle] = React.useState(false);
 
@@ -103,7 +105,14 @@ const ColumnContainer = (props: Props) => {
       {/* tasks */}
       <div className="flex flex-grow flex-col gap-4 p-2 overflow-x-hidden overflow-y-auto">
         {tasks.map((task) => {
-          return <TaskCard key={task.id} task={task} deleteTask={deleteTask} />;
+          return (
+            <TaskCard
+              key={task.id}
+              task={task}
+              deleteTask={deleteTask}
+              updateTask={updateTask}
+            />
+          );
         })}
       </div>
       {/* footer */}
